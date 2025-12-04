@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import click
+import sys
 from datetime import datetime
 from tabulate import tabulate
 from services.user_service import UserService
@@ -14,10 +15,158 @@ user_service = UserService()
 room_service = RoomService()
 booking_service = BookingService()
 
-@click.group()
-def cli():
+# Global variable to store current user
+current_user = None
+
+def show_main_menu():
+    """Show the main interactive menu"""
+    while True:
+        click.echo("\n=== HOSTEL BOOKING SYSTEM ===")
+        click.echo("1. Register")
+        click.echo("2. Login")
+        click.echo("3. Exit")
+        
+        choice = click.prompt("Choose", type=int)
+        
+        if choice == 1:
+            register_user()
+        elif choice == 2:
+            if login_user():
+                show_user_menu()
+        elif choice == 3:
+            click.echo("Goodbye!")
+            sys.exit(0)
+        else:
+            click.echo("Invalid choice. Please try again.")
+
+def register_user():
+    """Register a new user"""
+    try:
+        name = click.prompt('Name')
+        email = click.prompt('Email')
+        phone = click.prompt('Phone')
+        password = click.prompt('Password', hide_input=True, confirmation_prompt=True)
+        
+        user = user_service.create_user(name, email, phone, password)
+        click.echo(f"✅ User registered successfully! ID: {user.id}")
+    except ValueError as e:
+        click.echo(f"❌ Error: {e}")
+
+def login_user():
+    """Login user"""
+    global current_user
+    email = click.prompt('Email')
+    password = click.prompt('Password', hide_input=True)
+    
+    user = user_service.authenticate_user(email, password)
+    if user:
+        current_user = user
+        click.echo(f"✅ Login successful! Welcome, {user.name}")
+        return True
+    else:
+        click.echo("❌ Invalid email or password")
+        return False
+
+def show_user_menu():
+    """Show user menu after login"""
+    while True:
+        click.echo(f"\n=== WELCOME {current_user.name.upper()} ===")
+        click.echo("1. View Available Rooms")
+        click.echo("2. Make Booking")
+        click.echo("3. View My Bookings")
+        click.echo("4. Cancel Booking")
+        click.echo("5. Logout")
+        
+        choice = click.prompt("Choose", type=int)
+        
+        if choice == 1:
+            view_available_rooms()
+        elif choice == 2:
+            make_booking()
+        elif choice == 3:
+            view_my_bookings()
+        elif choice == 4:
+            cancel_my_booking()
+        elif choice == 5:
+            click.echo("Logged out successfully!")
+            break
+        else:
+            click.echo("Invalid choice. Please try again.")
+
+def view_available_rooms():
+    """View available rooms"""
+    rooms = room_service.list_available_rooms()
+    if not rooms:
+        click.echo("No available rooms.")
+        return
+    
+    table_data = [[r.id, r.number, r.room_type.value, r.capacity, f"KSh {r.price_per_night:.2f}"] for r in rooms]
+    click.echo(tabulate(table_data, headers=['ID', 'Number', 'Type', 'Capacity', 'Price/Night'], tablefmt='grid'))
+
+def make_booking():
+    """Make a booking"""
+    try:
+        view_available_rooms()
+        room_id = click.prompt('Room ID', type=int)
+        check_in = click.prompt('Check-in date (YYYY-MM-DD)')
+        check_out = click.prompt('Check-out date (YYYY-MM-DD)')
+        
+        check_in_date = parse_date(check_in)
+        check_out_date = parse_date(check_out)
+        
+        booking = booking_service.create_booking(current_user.id, room_id, check_in_date, check_out_date)
+        click.echo(f"✅ Booking created successfully!")
+        click.echo(f"   Booking ID: {booking.id}")
+        click.echo(f"   Total Price: KSh {booking.total_price:.2f}")
+        click.echo(f"   Nights: {(check_out_date - check_in_date).days}")
+    except ValueError as e:
+        click.echo(f"❌ Error: {e}")
+
+def view_my_bookings():
+    """View user's bookings"""
+    bookings = booking_service.get_user_bookings(current_user.id)
+    if not bookings:
+        click.echo("No bookings found.")
+        return
+    
+    table_data = []
+    for b in bookings:
+        room = room_service.get_room_by_id(b.room_id)
+        table_data.append([
+            b.id,
+            room.number if room else 'Unknown',
+            b.check_in.strftime('%Y-%m-%d'),
+            b.check_out.strftime('%Y-%m-%d'),
+            f"KSh {b.total_price:.2f}",
+            b.status.value
+        ])
+    
+    click.echo(tabulate(table_data, headers=['ID', 'Room', 'Check-in', 'Check-out', 'Total', 'Status'], tablefmt='grid'))
+
+def cancel_my_booking():
+    """Cancel user's booking"""
+    view_my_bookings()
+    try:
+        booking_id = click.prompt('Booking ID to cancel', type=int)
+        booking = booking_service.get_booking_by_id(booking_id)
+        
+        if not booking or booking.user_id != current_user.id:
+            click.echo("❌ Booking not found or not yours.")
+            return
+        
+        if booking_service.cancel_booking(booking_id):
+            click.echo(f"✅ Booking {booking_id} cancelled successfully!")
+        else:
+            click.echo(f"❌ Failed to cancel booking.")
+    except ValueError:
+        click.echo("❌ Invalid booking ID.")
+
+@click.group(invoke_without_command=True)
+@click.pass_context
+def cli(ctx):
     """Hostel Booking System CLI"""
-    pass
+    if ctx.invoked_subcommand is None:
+        show_main_menu()
 
 # User commands
 @cli.group()
@@ -90,7 +239,7 @@ def list(available_only):
         click.echo("No rooms found.")
         return
     
-    table_data = [[r.id, r.number, r.room_type.value, r.capacity, f"${r.price_per_night:.2f}", 
+    table_data = [[r.id, r.number, r.room_type.value, r.capacity, f"KSh {r.price_per_night:.2f}", 
                    "✅" if r.is_available else "❌"] for r in rooms]
     click.echo(tabulate(table_data, headers=['ID', 'Number', 'Type', 'Capacity', 'Price/Night', 'Available'], tablefmt='grid'))
 
@@ -114,7 +263,7 @@ def create(user_id, room_id, check_in, check_out):
         booking = booking_service.create_booking(user_id, room_id, check_in_date, check_out_date)
         click.echo(f"✅ Booking created successfully!")
         click.echo(f"   Booking ID: {booking.id}")
-        click.echo(f"   Total Price: ${booking.total_price:.2f}")
+        click.echo(f"   Total Price: KSh {booking.total_price:.2f}")
         click.echo(f"   Nights: {(check_out_date - check_in_date).days}")
     except ValueError as e:
         click.echo(f"❌ Error: {e}")
@@ -151,7 +300,7 @@ def list(user_id):
             room.number if room else 'Unknown',
             b.check_in.strftime('%Y-%m-%d'),
             b.check_out.strftime('%Y-%m-%d'),
-            f"${b.total_price:.2f}",
+            f"KSh {b.total_price:.2f}",
             b.status.value
         ])
     
@@ -175,7 +324,7 @@ def details(booking_id):
     click.echo(f"   Check-in: {booking.check_in.strftime('%Y-%m-%d')}")
     click.echo(f"   Check-out: {booking.check_out.strftime('%Y-%m-%d')}")
     click.echo(f"   Nights: {(booking.check_out - booking.check_in).days}")
-    click.echo(f"   Total Price: ${booking.total_price:.2f}")
+    click.echo(f"   Total Price: KSh {booking.total_price:.2f}")
     click.echo(f"   Status: {booking.status.value}")
 
 # Quick setup command for demo
@@ -184,17 +333,20 @@ def setup():
     """Setup demo data"""
     try:
         # Create sample users
-        user1 = user_service.create_user("John Doe", "john@example.com", "+1234567890", "password123")
-        user2 = user_service.create_user("Jane Smith", "jane@example.com", "+0987654321", "password456")
+        user1 = user_service.create_user("John Doe", "john@example.com", "+1234567890", "Chelugui")
+        user2 = user_service.create_user("Jane Smith", "jane@example.com", "+0987654321", "Chelugui")
         
         # Create sample rooms
-        room1 = room_service.create_room("101", "single", 1, 50.0)
-        room2 = room_service.create_room("102", "double", 2, 80.0)
-        room3 = room_service.create_room("201", "dormitory", 4, 25.0)
+        room1 = room_service.create_room("101", "single", 1, 2500.0)
+        room2 = room_service.create_room("102", "double", 2, 4000.0)
+        room3 = room_service.create_room("201", "dormitory", 4, 1500.0)
         
         click.echo("✅ Demo data created successfully!")
         click.echo(f"   Users: {user1.name} (ID: {user1.id}), {user2.name} (ID: {user2.id})")
         click.echo(f"   Rooms: {room1.number} (ID: {room1.id}), {room2.number} (ID: {room2.id}), {room3.number} (ID: {room3.id})")
+        click.echo("\n   Demo login credentials:")
+        click.echo("   - john@example.com / Chelugui")
+        click.echo("   - jane@example.com / Chelugui")
         
     except ValueError as e:
         click.echo(f"❌ Error: {e}")

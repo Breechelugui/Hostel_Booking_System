@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1234567890",
+    "password_hash": "61ff8b9fd9779d64fb477848ac5df1a4318a5ed6d9f717b0f248cb50f9b59936"
+  },
+  {
+    "id": 2,
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "phone": "+0987654321",
+    "password_hash": "61ff8b9fd9779d64fb477848ac5df1a4318a5ed6d9f717b0f248cb50f9b59936"
+  }
+]

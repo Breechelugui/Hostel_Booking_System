@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": 1,
+    "number": "101",
+    "room_type": "single",
+    "capacity": 1,
+    "price_per_night": 2500.0,
+    "is_available": true
+  },
+  {
+    "id": 2,
+    "number": "102",
+    "room_type": "double",
+    "capacity": 2,
+    "price_per_night": 4000.0,
+    "is_available": true
+  },
+  {
+    "id": 3,
+    "number": "201",
+    "room_type": "dormitory",
+    "capacity": 4,
+    "price_per_night": 1500.0,
+    "is_available": true
+  }
+]
