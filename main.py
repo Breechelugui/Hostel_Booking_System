@@ -333,20 +333,29 @@ def setup():
     """Setup demo data"""
     try:
         # Create sample users
-        user1 = user_service.create_user("John Doe", "john@example.com", "+1234567890", "Chelugui")
-        user2 = user_service.create_user("Jane Smith", "jane@example.com", "+0987654321", "Chelugui")
+        user1 = user_service.create_user("Brendah Chelugui", "brendachelugui@gmail.com", "+254712345678", "Chelugui")
+        user2 = user_service.create_user("Erasmus Pkoskei", "pkosgei@gmail.com", "+254723456789", "Chelugui")
         
-        # Create sample rooms
-        room1 = room_service.create_room("101", "single", 1, 2500.0)
-        room2 = room_service.create_room("102", "double", 2, 4000.0)
-        room3 = room_service.create_room("201", "dormitory", 4, 1500.0)
+        # Create multiple rooms of each type
+        rooms = [
+            room_service.create_room("101", "single", 1, 2500.0),
+            room_service.create_room("102", "single", 1, 2500.0),
+            room_service.create_room("103", "single", 1, 2500.0),
+            room_service.create_room("104", "single", 1, 2500.0),
+            room_service.create_room("201", "double", 2, 4000.0),
+            room_service.create_room("202", "double", 2, 4000.0),
+            room_service.create_room("203", "double", 2, 4000.0),
+            room_service.create_room("301", "dormitory", 4, 1500.0),
+            room_service.create_room("302", "dormitory", 4, 1500.0),
+            room_service.create_room("303", "dormitory", 4, 1500.0)
+        ]
         
         click.echo("✅ Demo data created successfully!")
         click.echo(f"   Users: {user1.name} (ID: {user1.id}), {user2.name} (ID: {user2.id})")
-        click.echo(f"   Rooms: {room1.number} (ID: {room1.id}), {room2.number} (ID: {room2.id}), {room3.number} (ID: {room3.id})")
+        click.echo(f"   Rooms: {len(rooms)} rooms created (4 single, 3 double, 3 dormitory)")
         click.echo("\n   Demo login credentials:")
-        click.echo("   - john@example.com / Chelugui")
-        click.echo("   - jane@example.com / Chelugui")
+        click.echo("   - brendachelugui@gmail.com / Chelugui")
+        click.echo("   - pkosgei@gmail.com / Chelugui")
         
     except ValueError as e:
         click.echo(f"❌ Error: {e}")
