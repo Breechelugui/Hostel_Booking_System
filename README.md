@@ -70,8 +70,8 @@ python3 main.py booking cancel --booking-id 1   # Cancel booking
 ## Demo Data
 
 After running `python3 main.py setup`, you can login with:
-- **John Doe**: john@example.com / Chelugui
-- **Jane Smith**: jane@example.com / Chelugui
+- **Brendah Chelugui**: brendachelugui@gmail.com / Chelugui
+- **Erasmus Pkoskei**: pkosgei@gmail.com / Chelugui
 
 ## Project Structure
 
