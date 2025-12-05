@@ -337,22 +337,24 @@ def setup():
         user2 = user_service.create_user("Erasmus Pkoskei", "pkosgei@gmail.com", "+254723456789", "Chelugui")
         
         # Create multiple rooms of each type
-        rooms = [
-            room_service.create_room("101", "single", 1, 2500.0),
-            room_service.create_room("102", "single", 1, 2500.0),
-            room_service.create_room("103", "single", 1, 2500.0),
-            room_service.create_room("104", "single", 1, 2500.0),
-            room_service.create_room("201", "double", 2, 4000.0),
-            room_service.create_room("202", "double", 2, 4000.0),
-            room_service.create_room("203", "double", 2, 4000.0),
-            room_service.create_room("301", "dormitory", 4, 1500.0),
-            room_service.create_room("302", "dormitory", 4, 1500.0),
-            room_service.create_room("303", "dormitory", 4, 1500.0)
-        ]
+        rooms = []
+        
+        # Create 24 single rooms (101-124)
+        for i in range(101, 125):
+            rooms.append(room_service.create_room(str(i), "single", 1, 2500.0))
+        
+        # Create 23 double rooms (201-223)
+        for i in range(201, 224):
+            rooms.append(room_service.create_room(str(i), "double", 2, 4000.0))
+        
+        # Create 23 dormitory rooms (301-323)
+        for i in range(301, 324):
+            rooms.append(room_service.create_room(str(i), "dormitory", 4, 1500.0))
         
         click.echo("✅ Demo data created successfully!")
         click.echo(f"   Users: {user1.name} (ID: {user1.id}), {user2.name} (ID: {user2.id})")
-        click.echo(f"   Rooms: {len(rooms)} rooms created (4 single, 3 double, 3 dormitory)")
+        click.echo(f"   Rooms: {len(rooms)} rooms created (24 single, 23 double, 23 dormitory)")
+        click.echo(f"   Total Capacity: {24*1 + 23*2 + 23*4} people")
         click.echo("\n   Demo login credentials:")
         click.echo("   - brendachelugui@gmail.com / Chelugui")
         click.echo("   - pkosgei@gmail.com / Chelugui")

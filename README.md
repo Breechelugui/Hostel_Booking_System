@@ -73,11 +73,11 @@ After running `python3 main.py setup`, you can login with:
 - **Brendah Chelugui**: brendachelugui@gmail.com / Chelugui
 - **Erasmus Pkoskei**: pkosgei@gmail.com / Chelugui
 
-**10 Rooms Available:**
-- 4 Single Rooms (101-104) - KSh 2,500/night
-- 3 Double Rooms (201-203) - KSh 4,000/night
-- 3 Dormitory Rooms (301-303) - KSh 1,500/night
-- **Total Capacity**: 22 people
+**70 Rooms Available:**
+- 24 Single Rooms (101-124) - KSh 2,500/night
+- 23 Double Rooms (201-223) - KSh 4,000/night
+- 23 Dormitory Rooms (301-323) - KSh 1,500/night
+- **Total Capacity**: 162 people
 
 ## Project Structure
 
@@ -94,10 +94,10 @@ Hostel_Booking_System/
 
 ## Room Types & Pricing
 
-- **Single**: 1 person capacity - KSh 2,500/night (4 rooms available)
-- **Double**: 2 person capacity - KSh 4,000/night (3 rooms available)
-- **Dormitory**: 4 person capacity - KSh 1,500/night (3 rooms available)
-- **Total Capacity**: 22 people across 10 rooms
+- **Single**: 1 person capacity - KSh 2,500/night (24 rooms available)
+- **Double**: 2 person capacity - KSh 4,000/night (23 rooms available)
+- **Dormitory**: 4 person capacity - KSh 1,500/night (23 rooms available)
+- **Total Capacity**: 162 people across 70 rooms
 
 ## Technical Features
 
