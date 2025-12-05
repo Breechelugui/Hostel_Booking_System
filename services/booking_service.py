@@ -2,11 +2,11 @@ from datetime import datetime
 from models.booking import Booking, BookingStatus
 from services.room_service import RoomService
 from services.user_service import UserService
-from utils.helpers import load_json_data, save_json_data, get_next_id
+from utils.database import Database
 
 class BookingService:
-    def __init__(self, data_file='data/bookings.json'):
-        self.data_file = data_file
+    def __init__(self):
+        self.db = Database()
         self.room_service = RoomService()
         self.user_service = UserService()
     
@@ -39,56 +39,91 @@ class BookingService:
         nights = (check_out - check_in).days
         total_price = nights * room.price_per_night
         
-        bookings_data = load_json_data(self.data_file)
-        booking_id = get_next_id(bookings_data)
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO bookings (user_id, room_id, check_in, check_out, total_price) VALUES (?, ?, ?, ?, ?)",
+            (user_id, room_id, check_in.isoformat(), check_out.isoformat(), total_price)
+        )
+        booking_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
         
-        booking = Booking(booking_id, user_id, room_id, check_in, check_out, total_price)
-        
-        bookings_data.append(booking.to_dict())
-        save_json_data(self.data_file, bookings_data)
-        
-        return booking
+        return Booking(booking_id, user_id, room_id, check_in, check_out, total_price)
     
     def _has_conflicting_booking(self, room_id, check_in, check_out):
         """Check if there are conflicting bookings"""
-        bookings_data = load_json_data(self.data_file)
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT check_in, check_out FROM bookings WHERE room_id = ? AND status = 'confirmed'",
+            (room_id,)
+        )
+        rows = cursor.fetchall()
+        conn.close()
         
-        for booking_data in bookings_data:
-            if (booking_data['room_id'] == room_id and 
-                booking_data['status'] == BookingStatus.CONFIRMED.value):
-                
-                existing_checkin = datetime.fromisoformat(booking_data['check_in'])
-                existing_checkout = datetime.fromisoformat(booking_data['check_out'])
-                
-                # Check for overlap
-                if not (check_out <= existing_checkin or check_in >= existing_checkout):
-                    return True
+        for row in rows:
+            existing_checkin = datetime.fromisoformat(row[0])
+            existing_checkout = datetime.fromisoformat(row[1])
+            
+            # Check for overlap
+            if not (check_out <= existing_checkin or check_in >= existing_checkout):
+                return True
         return False
     
     def cancel_booking(self, booking_id):
         """Cancel a booking"""
-        bookings_data = load_json_data(self.data_file)
-        
-        for booking in bookings_data:
-            if booking['id'] == booking_id:
-                booking['status'] = BookingStatus.CANCELLED.value
-                save_json_data(self.data_file, bookings_data)
-                return True
-        return False
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("UPDATE bookings SET status = 'cancelled' WHERE id = ?", (booking_id,))
+        affected = cursor.rowcount
+        conn.commit()
+        conn.close()
+        return affected > 0
     
     def get_booking_by_id(self, booking_id):
         """Get booking by ID"""
-        bookings_data = load_json_data(self.data_file)
-        booking_data = next((booking for booking in bookings_data if booking['id'] == booking_id), None)
-        return Booking.from_dict(booking_data) if booking_data else None
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM bookings WHERE id = ?", (booking_id,))
+        row = cursor.fetchone()
+        conn.close()
+        
+        if row:
+            return Booking(
+                row[0], row[1], row[2],
+                datetime.fromisoformat(row[3]),
+                datetime.fromisoformat(row[4]),
+                row[5], BookingStatus(row[6])
+            )
+        return None
     
     def get_user_bookings(self, user_id):
         """Get all bookings for a user"""
-        bookings_data = load_json_data(self.data_file)
-        user_bookings = [booking for booking in bookings_data if booking['user_id'] == user_id]
-        return [Booking.from_dict(booking) for booking in user_bookings]
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM bookings WHERE user_id = ?", (user_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [Booking(
+            row[0], row[1], row[2],
+            datetime.fromisoformat(row[3]),
+            datetime.fromisoformat(row[4]),
+            row[5], BookingStatus(row[6])
+        ) for row in rows]
     
     def list_all_bookings(self):
         """List all bookings"""
-        bookings_data = load_json_data(self.data_file)
-        return [Booking.from_dict(booking) for booking in bookings_data]
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM bookings")
+        rows = cursor.fetchall()
+        conn.close()
+        
+        return [Booking(
+            row[0], row[1], row[2],
+            datetime.fromisoformat(row[3]),
+            datetime.fromisoformat(row[4]),
+            row[5], BookingStatus(row[6])
+        ) for row in rows]

@@ -100,7 +100,7 @@ def view_available_rooms():
         click.echo("No available rooms.")
         return
     
-    table_data = [[r.id, r.number, r.room_type.value, r.capacity, f"KSh {r.price_per_night:.2f}"] for r in rooms]
+    table_data = [[r.id, r.number, r.room_type.value, r.capacity, f"KSh {r.price_per_night:.0f}"] for r in rooms]
     click.echo(tabulate(table_data, headers=['ID', 'Number', 'Type', 'Capacity', 'Price/Night'], tablefmt='grid'))
 
 def make_booking():
