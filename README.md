@@ -4,10 +4,12 @@ A command-line interface for managing hostel bookings with user authentication, 
 
 ## Features
 
+- **Interactive Menu**: User-friendly menu system for easy navigation
 - **User Management**: Create users with secure password authentication
 - **Room Management**: Add and manage different room types (single, double, dormitory)
 - **Booking System**: Create, view, and cancel bookings with conflict checking
-- **Data Persistence**: JSON file storage for all data
+- **Database Storage**: SQLite database for reliable data persistence
+- **Currency**: Kenyan Shilling (KSh) pricing
 - **Security**: Password hashing and authentication
 
 ## Installation
@@ -20,19 +22,24 @@ pip3 install -r requirements.txt
 
 ## Quick Start
 
-1. **Setup demo data:**
+1. **Interactive Mode (Recommended):**
+```bash
+./main.py
+```
+This opens the interactive menu where you can:
+- Register new users
+- Login and manage bookings
+- View available rooms
+
+2. **Setup demo data:**
 ```bash
 python3 main.py setup
 ```
 
-2. **Create a user:**
+3. **Command Line Mode:**
 ```bash
 python3 main.py user create
-```
-
-3. **Login:**
-```bash
-python3 main.py user login
+python3 main.py room list
 ```
 
 ## Commands
@@ -63,29 +70,33 @@ python3 main.py booking cancel --booking-id 1   # Cancel booking
 ## Demo Data
 
 After running `python3 main.py setup`, you can login with:
-- **John Doe**: john@example.com / password123
-- **Jane Smith**: jane@example.com / password456
+- **John Doe**: john@example.com / Chelugui
+- **Jane Smith**: jane@example.com / Chelugui
 
 ## Project Structure
 
 ```
 Hostel_Booking_System/
-├── data/                 # JSON data files
+├── data/                 # SQLite database
+│   └── hostel.db        # Main database file
 ├── models/              # Data models
 ├── services/            # Business logic
-├── utils/               # Helper functions
+├── utils/               # Helper functions & database
 ├── main.py             # CLI application
 └── requirements.txt    # Dependencies
 ```
 
-## Room Types
+## Room Types & Pricing
 
-- **Single**: 1 person capacity
-- **Double**: 2 person capacity  
-- **Dormitory**: 4+ person capacity
+- **Single**: 1 person capacity - KSh 2,500/night
+- **Double**: 2 person capacity - KSh 4,000/night
+- **Dormitory**: 4+ person capacity - KSh 1,500/night
 
-## Security
+## Technical Features
 
-- Passwords are hashed using SHA-256
-- Minimum 6 character password requirement
-- Hidden password input during registration/login
+- **Database**: SQLite for reliable data storage
+- **Security**: SHA-256 password hashing
+- **Validation**: Email format and password length validation
+- **Conflict Detection**: Prevents double-booking of rooms
+- **Interactive UI**: Menu-driven interface with table formatting
+- **CLI Commands**: Full command-line interface support
